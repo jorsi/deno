@@ -36,6 +36,7 @@ main_extern = [
   "$rust_build:tokio_io",
   "$rust_build:tokio_process",
   "$rust_build:tokio_threadpool",
+  "$rust_build:tokio_tls",
   "$rust_build:url",
 ]
 if (is_win) {

@@ -310,6 +310,15 @@ rust_crate("h2") {
   ]
 }
 
+rust_crate("hex") {
+  edition = "2015"
+  source_root = "$cargo_home/registry/src/github.com-1ecc6299db9ec823/hex-0.3.2/src/lib.rs"
+  args = [
+    "--cap-lints",
+    "allow",
+  ]
+}
+
 rust_crate("http") {
   edition = "2015"
   source_root = "$cargo_home/registry/src/github.com-1ecc6299db9ec823/http-0.1.17/src/lib.rs"
@@ -614,6 +623,33 @@ rust_crate("mio") {
         crate_name = "winapi"
         crate_version = "0.2.8"
       },
+    ]
+  }
+}
+
+rust_crate("native_tls") {
+  edition = "2015"
+  source_root = "$cargo_home/registry/src/github.com-1ecc6299db9ec823/native-tls-0.2.2/src/lib.rs"
+  extern = [
+    ":lazy_static",
+    ":hex"
+  ]
+  args = [
+    "--cap-lints",
+    "allow",
+  ]
+  if (is_mac) {
+    extern += [
+      ":lazy_static",
+      ":libc",
+      ":security_framework",
+      ":security_framework_sys",
+      ":tempfile"
+    ]
+  }
+  if (is_win) {
+    extern += [
+      ":schannel"
     ]
   }
 }
@@ -1143,6 +1179,19 @@ rust_crate("scopeguard") {
   ]
 }
 
+rust_crate("schannel") {
+  edition = "2015"
+  source_root = "$cargo_home/registry/src/github.com-1ecc6299db9ec823/schannel-0.1.15/src/lib.rs"
+  extern = [
+    ":lazy_static",
+    ":winapi"
+  ]
+  args = [
+    "--cap-lints",
+    "allow",
+  ]
+}
+
 rust_crate("sct") {
   source_root = "$cargo_home/registry/src/github.com-1ecc6299db9ec823/sct-0.5.0/src/lib.rs"
   extern = [
@@ -1596,6 +1645,20 @@ rust_crate("tokio_timer") {
   ]
 }
 
+rust_crate("tokio_tls") {
+  edition = "2015"
+  source_root = "$cargo_home/registry/src/github.com-1ecc6299db9ec823/tokio-tls-0.2.1/src/lib.rs"
+  extern = [
+    ":futures",
+    ":native_tls",
+    ":tokio_io",
+  ]
+  args = [
+    "--cap-lints",
+    "allow",
+  ]
+}
+
 rust_crate("tokio_trace_core") {
   edition = "2015"
   source_root = "$cargo_home/registry/src/github.com-1ecc6299db9ec823/tokio-trace-core-0.1.0/src/lib.rs"
@@ -1993,6 +2056,7 @@ if (is_win) {
     edition = "2015"
     source_root = "$cargo_home/registry/src/github.com-1ecc6299db9ec823/winapi-0.3.7/src/lib.rs"
     features = [
+      "bcrypt",
       "consoleapi",
       "dbghelp",
       "errhandlingapi",
@@ -2000,9 +2064,12 @@ if (is_win) {
       "handleapi",
       "ioapiset",
       "knownfolders",
+      "lmcons",
+      "minschannel",
       "minwinbase",
       "minwindef",
       "namedpipeapi",
+      "ncrypt",
       "ntdef",
       "ntsecapi",
       "ntstatus",
@@ -2010,7 +2077,10 @@ if (is_win) {
       "processenv",
       "processthreadsapi",
       "profileapi",
+      "schannel",
+      "securitybaseapi",
       "shlobj",
+      "sspi",
       "std",
       "synchapi",
       "sysinfoapi",
@@ -2018,6 +2088,7 @@ if (is_win) {
       "timezoneapi",
       "winbase",
       "wincon",
+      "wincrypt",
       "winerror",
       "winnt",
       "winsock2",
