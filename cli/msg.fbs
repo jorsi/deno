@@ -7,6 +7,7 @@ union Any {
   Cwd,
   CwdRes,
   Dial,
+  DialTLS,
   Environ,
   EnvironRes,
   Exit,
@@ -472,6 +473,11 @@ table Accept {
 }
 
 table Dial {
+  network: string;
+  address: string;
+}
+
+table DialTLS {
   network: string;
   address: string;
 }

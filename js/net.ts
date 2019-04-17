@@ -184,6 +184,46 @@ export async function dial(network: Network, address: string): Promise<Conn> {
   return new ConnImpl(res.rid(), res.remoteAddr()!, res.localAddr()!);
 }
 
+/** DialTLS connects to the address on the named network.
+ *
+ * Supported networks are only `tcp` currently.
+ *
+ * TODO: `tcp4` (IPv4-only), `tcp6` (IPv6-only), `udp`, `udp4` (IPv4-only),
+ * `udp6` (IPv6-only), `ip`, `ip4` (IPv4-only), `ip6` (IPv6-only), `unix`,
+ * `unixgram` and `unixpacket`.
+ *
+ * For TCP and UDP networks, the address has the form `host:port`. The host must
+ * be a literal IP address, or a host name that can be resolved to IP addresses.
+ * The port must be a literal port number or a service name. If the host is a
+ * literal IPv6 address it must be enclosed in square brackets, as in
+ * `[2001:db8::1]:80` or `[fe80::1%zone]:80`. The zone specifies the scope of
+ * the literal IPv6 address as defined in RFC 4007. The functions JoinHostPort
+ * and SplitHostPort manipulate a pair of host and port in this form. When using
+ * TCP, and the host resolves to multiple IP addresses, Dial will try each IP
+ * address in order until one succeeds.
+ *
+ * Examples:
+ *
+ *     dialTLS("tcp", "golang.org:http")
+ *     dialTLS("tcp", "192.0.2.1:http")
+ *     dialTLS("tcp", "198.51.100.1:80")
+ *     dialTLS("udp", "[2001:db8::1]:domain")
+ *     dialTLS("udp", "[fe80::1%lo0]:53")
+ *     dialTLS("tcp", ":80")
+ */
+export async function dialTLS(network: Network, address: string): Promise<Conn> {
+  const builder = flatbuffers.createBuilder();
+  const network_ = builder.createString(network);
+  const address_ = builder.createString(address);
+  const inner = msg.DialTLS.createDialTLS(builder, network_, address_);
+  const baseRes = await dispatch.sendAsync(builder, msg.Any.DialTLS, inner);
+  assert(baseRes != null);
+  assert(msg.Any.NewConn === baseRes!.innerType());
+  const res = new msg.NewConn();
+  assert(baseRes!.inner(res) != null);
+  return new ConnImpl(res.rid(), res.remoteAddr()!, res.localAddr()!);
+}
+
 /** **RESERVED** */
 export async function connect(
   _network: Network,

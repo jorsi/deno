@@ -37,6 +37,7 @@ use tokio::io::{AsyncRead, AsyncWrite};
 use tokio::net::TcpStream;
 use tokio::sync::mpsc;
 use tokio_process;
+use tokio_tls;
 
 pub type ResourceId = u32; // Sometimes referred to RID.
 
@@ -90,6 +91,7 @@ enum Repr {
   // See: https://github.com/tokio-rs/tokio/issues/846
   TcpListener(tokio::net::TcpListener, Option<futures::task::Task>),
   TcpStream(tokio::net::TcpStream),
+  TlsStream(tokio_tls::TlsStream),
   HttpBody(HttpBody),
   Repl(Arc<Mutex<Repl>>),
   // Enum size is bounded by the largest variant.
@@ -135,6 +137,7 @@ fn inspect_repr(repr: &Repr) -> String {
     Repr::FsFile(_) => "fsFile",
     Repr::TcpListener(_, _) => "tcpListener",
     Repr::TcpStream(_) => "tcpStream",
+    Repr::TlsStream(_) => "tlsStream",
     Repr::HttpBody(_) => "httpBody",
     Repr::Repl(_) => "repl",
     Repr::Child(_) => "child",
@@ -210,6 +213,7 @@ impl AsyncRead for Resource {
         Repr::FsFile(ref mut f) => f.poll_read(buf),
         Repr::Stdin(ref mut f) => f.poll_read(buf),
         Repr::TcpStream(ref mut f) => f.poll_read(buf),
+        Repr::TlsStream(ref mut f) => f.poll_read(buf),
         Repr::HttpBody(ref mut f) => f.poll_read(buf),
         Repr::ChildStdout(ref mut f) => f.poll_read(buf),
         Repr::ChildStderr(ref mut f) => f.poll_read(buf),
@@ -240,6 +244,7 @@ impl AsyncWrite for Resource {
         Repr::Stdout(ref mut f) => f.poll_write(buf),
         Repr::Stderr(ref mut f) => f.poll_write(buf),
         Repr::TcpStream(ref mut f) => f.poll_write(buf),
+        Repr::TlsStream(ref mut f) => f.poll_write(buf),
         Repr::ChildStdin(ref mut f) => f.poll_write(buf),
         _ => panic!("Cannot write"),
       },
@@ -277,6 +282,14 @@ pub fn add_tcp_stream(stream: tokio::net::TcpStream) -> Resource {
   let rid = new_rid();
   let mut tg = RESOURCE_TABLE.lock().unwrap();
   let r = tg.insert(rid, Repr::TcpStream(stream));
+  assert!(r.is_none());
+  Resource { rid }
+}
+
+pub fn add_tls_stream(stream: tokio_tls::TlsStream) -> Resource {
+  let rid = new_rid();
+  let mut tg = RESOURCE_TABLE.lock().unwrap();
+  let r = tg.insert(rid, Repr::TlsStream(stream));
   assert!(r.is_none());
   Resource { rid }
 }
